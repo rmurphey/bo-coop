@@ -15,5 +15,15 @@
   "bugs": {
     "url": "https://github.com/rmurphey/bo-coop/issues"
   },
-  "homepage": "https://github.com/rmurphey/bo-coop"
+  "homepage": "https://github.com/rmurphey/bo-coop",
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "grunt-webpack": "^1.0.8",
+    "johnny-five": "^0.8.47",
+    "jsx-loader": "^0.12.2",
+    "lodash": "^2.4.1",
+    "react": "^0.13.0",
+    "webpack": "^1.7.3",
+    "webpack-dev-server": "^1.7.0"
+  }
 }
