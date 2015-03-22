@@ -4,6 +4,11 @@ var five = require('johnny-five');
 
 module.exports = function (board) {
   var sensors = new EventEmitter();
+  var light = {
+    initialized : false,
+    on : function () {},
+    off : function () {}
+  };
 
   board.on('ready', function () {
     var led = new five.Led.RGB({
@@ -24,12 +29,19 @@ module.exports = function (board) {
       freq : 250
     });
 
-    var light = sensors.light = new five.Sensor({
+    var photoSensor = sensors.light = new five.Sensor({
       pin : 'A2',
       freq : 250
     });
 
-    // var relay = sensors.relay = new five.Relay(2);
+    var relay = new five.Relay(2);
+
+    light.on = relay.on.bind(relay);
+    light.off = relay.off.bind(relay);
+    light.initialized = true;
+
+    // ensure we always start with the light off
+    relay.off();
 
     temp.on('change', function (err, data) {
       sensors.emit('data', { temperature : data.celsius });
@@ -39,10 +51,13 @@ module.exports = function (board) {
       sensors.emit('data', { food : this.value });
     });
 
-    light.on('data', function () {
+    photoSensor.on('data', function () {
       sensors.emit('data', { light : this.value });
     });
   });
 
-  return sensors;
+  return {
+    sensors : sensors,
+    light : light
+  };
 };

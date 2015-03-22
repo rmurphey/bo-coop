@@ -8,16 +8,18 @@ var path = require('path');
 var request = require('request');
 var _ = require('lodash');
 
-var Sensors = require('../sensors');
+var WEBPACK_SERVER = 'http://localhost:9001';
+
+var Arduino = require('../arduino');
 var sockets = [];
 var sensorData = {};
 
-var WEBPACK_SERVER = 'http://localhost:9001';
+var board = new five.Board();
+var arduino = Arduino(board);
+var sensors = arduino.sensors;
 
 app.set('views', path.resolve(__dirname, './views'));
 app.set('view engine', 'jade');
-
-app.use('/static', express.static(__dirname + '../dist'));
 
 app.get('/', function (req, res) {
   res.render('index', {
@@ -31,8 +33,16 @@ app.get('/assets/*', function (req, res) {
   request(url).pipe(res);
 });
 
-var board = new five.Board();
-var sensors = Sensors(board);
+app.post('/control/:item/:setting', function (req, res) {
+  var control = arduino[req.params.item];
+  var setting = req.params.setting;
+  control[setting]();
+
+  var data = {};
+  data[control] = setting;
+
+  res.status(200).send(data);
+});
 
 sensors.on('data', function (data) {
   sensorData = _.extend(sensorData, data);

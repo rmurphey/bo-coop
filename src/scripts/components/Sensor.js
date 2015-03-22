@@ -7,18 +7,19 @@ var Sensor = React.createClass({
   getInitialState: function () {
     var name = this.props.name;
 
-    socket.on('data', function (data) {
-      this.setState(data);
-    }.bind(this));
-
     return {
       value: window._initialData
     };
   },
 
+  componentDidMount : function () {
+    socket.on('data', function (data) {
+      this.setState(data);
+    }.bind(this));
+  },
+
   getDefaultProps: function () {
     return {
-      sensorName: 'unknown',
       unit: ''
     };
   },
