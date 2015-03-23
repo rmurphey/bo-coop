@@ -13,10 +13,12 @@ var WEBPACK_SERVER = 'http://localhost:9001';
 var Arduino = require('../arduino');
 var sockets = [];
 var sensorData = {};
+var controlData = {};
 
 var board = new five.Board();
 var arduino = Arduino(board);
 var sensors = arduino.sensors;
+var controls = arduino.controls;
 
 app.set('views', path.resolve(__dirname, './views'));
 app.set('view engine', 'jade');
@@ -36,16 +38,25 @@ app.get('/assets/*', function (req, res) {
 app.post('/control/:item/:setting', function (req, res) {
   var control = arduino[req.params.item];
   var setting = req.params.setting;
+
+  if (!control || !control[setting]) {
+    return res.status(404).send({ error : 'not found' });
+  }
+
   control[setting]();
 
   var data = {};
-  data[control] = setting;
+  data[req.params.item] = setting;
 
   res.status(200).send(data);
 });
 
 sensors.on('data', function (data) {
   sensorData = _.extend(sensorData, data);
+});
+
+controls.on('data', function (data) {
+  controlData = _.extend(controlData, data);
 });
 
 emit();
@@ -56,7 +67,12 @@ io.on('connection', function (socket) {
 
 function emit () {
   sockets.forEach(function (s) {
-    s.emit('data', sensorData);
+    var data = {
+      sensors : sensorData,
+      controls : controlData
+    };
+
+    s.emit('data', data);
   });
 
   setTimeout(emit, 1000);

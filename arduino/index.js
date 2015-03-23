@@ -4,10 +4,14 @@ var five = require('johnny-five');
 
 module.exports = function (board) {
   var sensors = new EventEmitter();
+  var controls = new EventEmitter();
+
   var light = {
-    initialized : false,
-    on : function () {},
-    off : function () {}
+    initialized : false
+  };
+
+  var heat = {
+    initialized : false
   };
 
   board.on('ready', function () {
@@ -26,25 +30,31 @@ module.exports = function (board) {
 
     var ping = sensors.ping = new five.Sensor({
       pin : 'A3',
-      freq : 250
+      freq : 100
     });
 
     var photoSensor = sensors.light = new five.Sensor({
       pin : 'A2',
-      freq : 250
+      freq : 100
     });
 
-    var relay = new five.Relay(2);
+    var lightSwitch = new five.Relay(2);
 
-    light.on = relay.on.bind(relay);
-    light.off = relay.off.bind(relay);
+    light.on = lightSwitch.on.bind(lightSwitch);
+    light.off = lightSwitch.off.bind(lightSwitch);
     light.initialized = true;
 
     // ensure we always start with the light off
-    relay.off();
+    lightSwitch.off();
+
+    var heatSwitch = new five.Relay(4);
+
+    heat.on = heatSwitch.on.bind(heatSwitch);
+    heat.off = heatSwitch.off.bind(heatSwitch);
+    heat.initialized = true;
 
     temp.on('change', function (err, data) {
-      sensors.emit('data', { temperature : data.celsius });
+      sensors.emit('data', { temperature : data.fahrenheit });
     });
 
     ping.on('data', function () {
@@ -54,10 +64,23 @@ module.exports = function (board) {
     photoSensor.on('data', function () {
       sensors.emit('data', { light : this.value });
     });
+
+    function report () {
+      controls.emit('data', {
+        light : lightSwitch.isOn,
+        heat : heatSwitch.isOn
+      });
+
+      setTimeout(report, 1000);
+    }
+
+    report();
   });
 
   return {
     sensors : sensors,
-    light : light
+    light : light,
+    heat : heat,
+    controls : controls
   };
 };

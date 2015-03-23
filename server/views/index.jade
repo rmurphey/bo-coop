@@ -1,8 +1,20 @@
 html
   head
     title= BoCoop
+    link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
+
   body
-    div#content
+    nav.navbar.navbar-inverse.navbar-fixed-top
+      div.container-fluid
+        div.navbar-header
+          a.navbar-brand(href="#") BoCoop
+    div.container-fluid
+      div.row
+        div.col-sm-9.col-md-10.main
+          div#content
+        div.col-sm-3.col-sm-offset-9.col-md-2.col-md-offset-10.sidebar
+          | Created by <a href="http://rmurphey.com">Rebecca Murphey</a>.
+
     script window._initialData = !{config};
     script(src='/socket.io/socket.io.js')
     script(src='/assets/main.js')
